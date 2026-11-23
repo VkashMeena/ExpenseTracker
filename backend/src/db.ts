@@ -8,19 +8,35 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 dotenv.config({ path: path.resolve(__dirname, '../.env') });
+dotenv.config(); // also read from root .env if present
 
-export const pool = new Pool({
-  host: process.env.PGHOST || 'localhost',
-  port: parseInt(process.env.PGPORT || '5432', 10),
-  user: process.env.PGUSER || 'postgres',
-  password: process.env.PGPASSWORD || 'root',
-  database: process.env.PGDATABASE || 'maintenance_db',
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-});
+const connectionString = process.env.DATABASE_URL || process.env.POSTGRES_URL;
+
+export const pool = new Pool(
+  connectionString
+    ? {
+        connectionString,
+        ssl: connectionString.includes('localhost') ? false : { rejectUnauthorized: false },
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      }
+    : {
+        host: process.env.PGHOST || 'localhost',
+        port: parseInt(process.env.PGPORT || '5432', 10),
+        user: process.env.PGUSER || 'postgres',
+        password: process.env.PGPASSWORD || 'root',
+        database: process.env.PGDATABASE || 'maintenance_db',
+        max: 10,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 5000,
+      }
+);
+
+let dbInitialized = false;
 
 export async function initDb() {
+  if (dbInitialized) return;
   const client = await pool.connect();
   try {
     await client.query(`
@@ -39,6 +55,7 @@ export async function initDb() {
       CREATE INDEX IF NOT EXISTS idx_expenses_date ON expenses(expense_date);
       CREATE INDEX IF NOT EXISTS idx_expenses_person ON expenses(person_name);
     `);
+    dbInitialized = true;
     console.log('PostgreSQL database connected and schema initialized.');
   } finally {
     client.release();

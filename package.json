@@ -1,11 +1,30 @@
 {
   "name": "room-maintenance-tracker",
   "version": "1.0.0",
-  "description": "Room Maintenance & Kharcha Tracker for Vikash Meena, Devendra Singh & Kamlesh Meena",
+  "description": "Room Maintenance Tracker for Vikash, Devendra and Kamlesh",
+  "workspaces": [
+    "backend",
+    "frontend"
+  ],
   "scripts": {
+    "install:all": "npm install",
+    "build": "npm --prefix backend run build && npm --prefix frontend run build",
+    "vercel-build": "npm --prefix backend run build && npm --prefix frontend run build",
     "start": "node backend/dist/index.js",
-    "build": "npm run build --prefix backend && npm run build --prefix frontend",
-    "dev:backend": "npm run dev --prefix backend",
-    "dev:frontend": "npm run dev --prefix frontend"
+    "dev:backend": "npm --prefix backend run dev",
+    "dev:frontend": "npm --prefix frontend run dev"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "pg": "^8.13.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.17.10",
+    "@types/pg": "^8.11.10",
+    "typescript": "^5.7.2"
   }
 }
